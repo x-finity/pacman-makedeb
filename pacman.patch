@@ -1,0 +1,52 @@
+--- a/Makefile
++++ b/Makefile	2022-10-17 03:35:35.813024795 -0900
+@@ -1,5 +1,5 @@
+-BINDIR        = /usr/local/bin/
+-DISTRO        = debian:stable
++BINDIR        = /usr/local/bin
++DISTRO        = $(lsb_release -ics | tr '\n' ':' | rev | cut -b2- | rev)
+ 
+ default:
+ 	@echo "This is an experimental Makefile. Use it at your own risk."
+@@ -49,11 +49,12 @@
+ .PHONY: install.dev
+ install.dev: pacapt.dev
+ 	@if [ -e $(@) ] && ! file $(@) | grep -q 'script'; then \
+-		echo >&2 "Makefile Will not overwrite non-script $(@)"; \
+-		exit 1; \
+-	else \
++#		echo >&2 "Makefile Will not overwrite non-script $(@)"; \
++#		exit 1; \
++		rm -fv $(BINDIR)/pacapt; \
++	fi; \
+ 		install -vm755 pacapt.dev $(BINDIR)/pacapt; \
+-	fi
++		ln -vfrs $(BINDIR)/pacapt $(BINDIR)/pacman
+ 
+ # Build and install stable script
+ 
+@@ -73,17 +74,18 @@
+ install: $(BINDIR)/pacapt
+ 
+ $(BINDIR)/pacman:
+-	@if [ ! -e $(@) ]; then \
+-		ln -vs $(BINDIR)/pacapt $(@); \
++	@if [ -s $(BINDIR)/pacapt ]; then \
++		ln -vfrs $(BINDIR)/pacapt $(@); \
+ 	fi
+ 
+ $(BINDIR)/pacapt: pacapt
+ 	@if [ -e $(@) ] && ! file $(@) | grep -q 'script'; then \
+-		echo >&2 "Makefile Will not overwrite non-script $(@)"; \
+-		exit 1; \
+-	else \
++#		echo >&2 "Makefile Will not overwrite non-script $(@)"; \
++#		exit 1; \
++		rm -fv $(@); \
++	fi \
+ 		install -vm755 pacapt $(BINDIR)/pacapt; \
+-	fi
++		ln -vfrs $(BINDIR)/pacapt $(BINDIR)/pacman;
+ 
+ .PHONY: docker.i
+ docker.i:
